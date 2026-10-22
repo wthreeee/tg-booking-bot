@@ -21,6 +21,8 @@ export const config = {
   timeZone: process.env.BUSINESS_TZ ?? 'Europe/Moscow',
   businessName: process.env.BUSINESS_NAME ?? 'Барбершоп «Борода»',
   dbPath: process.env.DB_PATH ?? 'data/booking.db',
+  /** HTTP-прокси для запросов к Telegram API, если он недоступен напрямую (например, http://127.0.0.1:10809) */
+  telegramProxy: process.env.TELEGRAM_PROXY?.trim() || null,
   /** Только для локальной разработки: открывать Mini App в обычном браузере от имени этого пользователя */
   devUserId: !isProduction && process.env.DEV_USER_ID ? Number(process.env.DEV_USER_ID) : null
 };

@@ -2,8 +2,16 @@
 
 Бот для салонов, барбершопов, студий и любых услуг по записи. Клиент выбирает услугу, мастера и свободное время прямо внутри Telegram, получает подтверждение и напоминания, а администратор видит все записи и получает уведомления.
 
-<!-- Скриншоты: сохраните в docs/ и раскомментируйте -->
-<!-- <img src="docs/screen-services.png" width="240"> <img src="docs/screen-time.png" width="240"> <img src="docs/screen-done.png" width="240"> -->
+<p>
+  <img src="docs/screens/2-services.png" width="200" alt="Выбор услуги">
+  <img src="docs/screens/4-time.png" width="200" alt="Выбор времени">
+  <img src="docs/screens/5-confirm.png" width="200" alt="Подтверждение">
+  <img src="docs/screens/6-done.png" width="200" alt="Запись создана">
+</p>
+<p>
+  <img src="docs/screens/7-schedule.png" width="200" alt="Расписание администратора">
+  <img src="docs/screens/8-notifications.png" width="400" alt="Подтверждение клиенту и уведомление администратору">
+</p>
 
 ## Возможности
 
@@ -31,7 +39,7 @@
 | | |
 |---|---|
 | Бот | Node.js 24, TypeScript, [grammY](https://grammy.dev) |
-| API | Fastify |
+| API | Fastify (+ сжатие brotli/gzip) |
 | База данных | SQLite (встроенный модуль `node:sqlite`, без нативных зависимостей) |
 | Mini App | React 19, TypeScript, Vite, Telegram Mini Apps SDK |
 | Тесты | `node:test` |
@@ -83,15 +91,17 @@ npm run preview -w server
 2. Скопируйте `.env.example` в `.env` и вставьте токен в `BOT_TOKEN`.
 3. Mini App открывается только по HTTPS. Для разработки поднимите бесплатный туннель:
    ```bash
-   npx cloudflared tunnel --url http://localhost:3000
+   ssh -R 80:127.0.0.1:3000 nokey@localhost.run
    ```
-   Скопируйте адрес вида `https://xxxx.trycloudflare.com` в `WEBAPP_URL`.
+   Скопируйте адрес вида `https://xxxx.lhr.life` в `WEBAPP_URL`. Подойдёт и `npx cloudflared tunnel --url http://127.0.0.1:3000`, но из России соединения с Cloudflare часто замедляются.
 4. Соберите и запустите:
    ```bash
    npm run build
    npm start
    ```
 5. Напишите боту `/myid`, впишите свой ID в `ADMIN_IDS` и перезапустите — теперь вам приходят уведомления и доступно расписание.
+
+> Если `api.telegram.org` недоступен с сервера напрямую (ошибка `ETIMEDOUT`), укажите HTTP-прокси в `TELEGRAM_PROXY`.
 
 ### Команды
 

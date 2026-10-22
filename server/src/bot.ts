@@ -1,4 +1,5 @@
 import { Bot, GrammyError, InlineKeyboard, type Context } from 'grammy';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 import { BookingError, type BookingEvent, type BookingService } from './booking-service.ts';
 import type { Database } from './db.ts';
@@ -12,11 +13,14 @@ type BotOptions = {
   adminIds: number[];
   webAppUrl: string;
   businessName: string;
+  proxyUrl: string | null;
 };
 
 export function createBot(options: BotOptions) {
   const { db, bookings, adminIds } = options;
-  const bot = new Bot(options.token);
+  const bot = new Bot(options.token, {
+    client: options.proxyUrl ? { baseFetchConfig: { agent: new HttpsProxyAgent(options.proxyUrl) } } : undefined
+  });
   // Telegram открывает Mini App только по HTTPS
   const hasWebApp = options.webAppUrl.startsWith('https://');
   const isAdmin = (ctx: Context) => Boolean(ctx.from && adminIds.includes(ctx.from.id));

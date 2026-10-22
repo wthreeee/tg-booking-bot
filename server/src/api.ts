@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import fastifyCompress from '@fastify/compress';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 
@@ -176,6 +177,8 @@ export function createApi(options: ApiOptions) {
   // В продакшене сервер сам раздаёт собранный Mini App
   if (options.webappDist && existsSync(options.webappDist)) {
     const root = resolve(options.webappDist);
+    // gzip/brotli: Mini App открывают с мобильного интернета, поэтому размер важен
+    app.register(fastifyCompress);
     app.register(fastifyStatic, { root });
     app.setNotFoundHandler((request, reply) =>
       request.url.startsWith('/api/') ? reply.code(404).send({ error: 'Не найдено' }) : reply.sendFile('index.html')

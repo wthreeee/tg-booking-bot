@@ -18,7 +18,8 @@ const { bot, setup, notifyUser } = createBot({
   bookings,
   adminIds: config.adminIds,
   webAppUrl: config.webAppUrl,
-  businessName: config.businessName
+  businessName: config.businessName,
+  proxyUrl: config.telegramProxy
 });
 
 const api = createApi({
