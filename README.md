@@ -1,123 +1,111 @@
-# 📅 Telegram-бот онлайн-записи + Mini App
+# 📅 Telegram Booking Bot + Mini App
 
-Бот для салонов, барбершопов, студий и любых услуг по записи. Клиент выбирает услугу, мастера и свободное время прямо внутри Telegram, получает подтверждение и напоминания, а администратор видит все записи и получает уведомления.
+**English** · [Русский](README.ru.md)
+
+An appointment booking system for salons, barbershops, studios and any service business — built entirely inside Telegram. Customers pick a service, a specialist and a free time slot in a Mini App, get a confirmation and reminders, while the admin sees the schedule and gets notified about every booking.
+
+> The demo UI is in Russian (it was built for a Russian-speaking barbershop). All texts live in a few files and can be translated in an hour.
 
 <p>
-  <img src="docs/screens/2-services.png" width="200" alt="Выбор услуги">
-  <img src="docs/screens/4-time.png" width="200" alt="Выбор времени">
-  <img src="docs/screens/5-confirm.png" width="200" alt="Подтверждение">
-  <img src="docs/screens/6-done.png" width="200" alt="Запись создана">
+  <img src="docs/screens/2-services.png" width="200" alt="Choosing a service">
+  <img src="docs/screens/4-time.png" width="200" alt="Choosing a time slot">
+  <img src="docs/screens/5-confirm.png" width="200" alt="Confirmation">
+  <img src="docs/screens/6-done.png" width="200" alt="Booking created">
 </p>
 <p>
-  <img src="docs/screens/7-schedule.png" width="200" alt="Расписание администратора">
-  <img src="docs/screens/8-notifications.png" width="400" alt="Подтверждение клиенту и уведомление администратору">
+  <img src="docs/screens/7-schedule.png" width="200" alt="Admin schedule">
+  <img src="docs/screens/8-notifications.png" width="400" alt="Customer confirmation and admin notification">
 </p>
 
-## Возможности
+## Features
 
-**Для клиента**
-- Запись в 3 шага в Mini App: услуга → мастер (или «любой свободный») → день и время
-- Показывается только реально свободное время: с учётом графика мастера, длительности услуги и уже занятых окон
-- Подтверждение в чат и напоминания **за сутки и за 2 часа** до визита
-- «Мои записи» и отмена в боте или в Mini App
-- Интерфейс подстраивается под светлую и тёмную тему Telegram
+**For customers**
+- Book in 3 steps inside a Mini App: service → specialist (or "any available") → day and time
+- Only truly free slots are shown, based on each specialist's working hours, service duration and existing bookings
+- Confirmation in chat plus reminders **24 hours and 2 hours** before the visit
+- "My bookings" and cancellation — in the bot or in the Mini App
+- The UI follows Telegram's light and dark themes
 
-**Для администратора**
-- Уведомление о каждой новой записи и отмене
-- Расписание на любой день в Mini App, с количеством записей и выручкой
-- Команды `/today` и `/tomorrow` в боте
-- Отмена записи с автоматическим уведомлением клиента
+**For the admin**
+- A notification for every new booking and cancellation
+- Daily schedule in the Mini App with booking count and revenue
+- `/today` and `/tomorrow` commands in the bot
+- Cancelling a booking automatically notifies the customer
 
-**Надёжность**
-- Проверка подписи Telegram (`initData`): нельзя отправить запрос от чужого имени
-- Защита от двойной записи на одно время (транзакция с повторной проверкой слота)
-- Лимит активных записей на клиента, запрет записи «впритык» (меньше чем за час)
-- Тесты на расчёт слотов, логику записи и проверку подписи
+**Reliability**
+- Telegram `initData` signature verification — nobody can send requests on someone else's behalf
+- No double booking: the slot is re-checked inside a database transaction
+- A limit of active bookings per customer and no last-minute bookings (less than an hour ahead)
+- Tests for slot calculation, booking logic and signature verification
 
-## Стек
+## Tech stack
 
 | | |
 |---|---|
-| Бот | Node.js 24, TypeScript, [grammY](https://grammy.dev) |
-| API | Fastify (+ сжатие brotli/gzip) |
-| База данных | SQLite (встроенный модуль `node:sqlite`, без нативных зависимостей) |
+| Bot | Node.js 24, TypeScript, [grammY](https://grammy.dev) |
+| API | Fastify (+ brotli/gzip compression) |
+| Database | SQLite (built-in `node:sqlite`, no native dependencies) |
 | Mini App | React 19, TypeScript, Vite, Telegram Mini Apps SDK |
-| Тесты | `node:test` |
+| Tests | `node:test` |
 
-## Как устроено
+## Architecture
 
 ```
-Клиент ──► Telegram-бот (grammY) ──┐
-   │                               ├──► booking-service ──► SQLite
-   └──► Mini App (React) ──► API ──┘         │
-                          (Fastify)          └──► уведомления и напоминания в Telegram
+Customer ──► Telegram bot (grammY) ──┐
+   │                                 ├──► booking-service ──► SQLite
+   └──► Mini App (React) ──► API ────┘         │
+                          (Fastify)            └──► notifications and reminders in Telegram
 ```
 
 ```
 server/src/
-├── index.ts            # точка входа: бот + API + напоминания
-├── bot.ts              # команды и кнопки бота, уведомления
-├── api.ts              # REST API для Mini App, раздача собранного фронтенда
-├── booking-service.ts  # бизнес-логика: свободные слоты, создание и отмена записей
-├── slots.ts            # расчёт свободного времени мастера
-├── telegram-auth.ts    # проверка подписи initData
-├── reminders.ts        # напоминания за 24 ч и за 2 ч
-├── db.ts               # схема и запросы SQLite
-└── seed.ts             # демо-данные: услуги и мастера
+├── index.ts            # entry point: bot + API + reminders
+├── bot.ts              # bot commands, buttons, notifications
+├── api.ts              # REST API for the Mini App, serves the built frontend
+├── booking-service.ts  # business logic: free slots, creating and cancelling bookings
+├── slots.ts            # free time calculation for a specialist
+├── telegram-auth.ts    # initData signature verification
+├── reminders.ts        # reminders 24 h and 2 h before
+├── db.ts               # SQLite schema and queries
+└── seed.ts             # demo data: services and specialists
 webapp/src/
-├── App.tsx             # вкладки: запись, мои записи, расписание (для админа)
-├── components/         # шаги записи, список записей, расписание
-├── api.ts              # клиент API
-└── telegram.ts         # обёртка над Telegram WebApp SDK
+├── App.tsx             # tabs: book, my bookings, schedule (admin)
+├── components/         # booking steps, booking list, schedule
+├── api.ts              # API client
+└── telegram.ts         # Telegram WebApp SDK wrapper
 ```
 
-## Быстрый старт
+## Quick start
 
-Нужен **Node.js 24+**.
+Requires **Node.js 24+**.
 
-### 1. Посмотреть интерфейс без Telegram
-
-```bash
-npm install
-npm run build
-npm run preview -w server
-```
-
-Откройте http://localhost:3000. Данные хранятся в памяти, бот не запускается.
-
-### 2. Запустить настоящего бота
-
-1. Создайте бота у [@BotFather](https://t.me/BotFather) и скопируйте токен.
-2. Скопируйте `.env.example` в `.env` и вставьте токен в `BOT_TOKEN`.
-3. Mini App открывается только по HTTPS. Для разработки поднимите бесплатный туннель:
+1. Create a bot with [@BotFather](https://t.me/BotFather), copy `.env.example` to `.env` and paste the token into `BOT_TOKEN`.
+2. Mini Apps only open over HTTPS. For development, start a free tunnel:
    ```bash
    ssh -R 80:127.0.0.1:3000 nokey@localhost.run
    ```
-   Скопируйте адрес вида `https://xxxx.lhr.life` в `WEBAPP_URL`. Подойдёт и `npx cloudflared tunnel --url http://127.0.0.1:3000`, но из России соединения с Cloudflare часто замедляются.
-4. Соберите и запустите:
+   and put the `https://xxxx.lhr.life` address into `WEBAPP_URL`.
+3. Build and run:
    ```bash
+   npm install
    npm run build
    npm start
    ```
-5. Напишите боту `/myid`, впишите свой ID в `ADMIN_IDS` и перезапустите — теперь вам приходят уведомления и доступно расписание.
+4. Send `/myid` to the bot, put your ID into `ADMIN_IDS` and restart — you'll get notifications and access to the schedule.
 
-> Если `api.telegram.org` недоступен с сервера напрямую (ошибка `ETIMEDOUT`), укажите HTTP-прокси в `TELEGRAM_PROXY`.
-
-### Команды
-
-| Команда | Что делает |
+| Command | What it does |
 |---|---|
-| `npm start` | бот + API + Mini App |
-| `npm run dev:server` | то же с перезапуском при изменениях |
-| `npm run dev:webapp` | Vite dev-сервер Mini App с hot reload (API проксируется на :3000) |
-| `npm run build` | сборка Mini App |
-| `npm test` | тесты сервера |
-| `npm run typecheck` | проверка типов |
+| `npm start` | bot + API + Mini App |
+| `npm run dev:server` | the same with auto-restart |
+| `npm run dev:webapp` | Vite dev server with hot reload (API proxied to :3000) |
+| `npm run build` | build the Mini App |
+| `npm test` | server tests |
+| `npm run typecheck` | type checking |
 
-## Как адаптировать под клиента
+## Customizing for a client
 
-- **Услуги и мастера** — в `server/src/seed.ts` (применяются к пустой базе).
-- **Название и часовой пояс** — `BUSINESS_NAME` и `BUSINESS_TZ` в `.env`.
-- **Правила записи** (шаг сетки, минимальный запас, горизонт записи, лимит записей) — константы в `slots.ts` и `booking-service.ts`.
+- **Services and specialists** — `server/src/seed.ts`
+- **Business name and time zone** — `BUSINESS_NAME` and `BUSINESS_TZ` in `.env`
+- **Booking rules** (slot step, minimum lead time, booking horizon, booking limit) — constants in `slots.ts` and `booking-service.ts`
 
-Деплой на сервер описан в [docs/DEPLOY.md](docs/DEPLOY.md).
+Server deployment (VPS + Caddy + systemd) is described in [docs/DEPLOY.md](docs/DEPLOY.md).
